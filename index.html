@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BIO//GLITCH — Plataforma Audiovisual Experimental</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@700&family=Syne:wght@700;800&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+
+<!-- Barra Superior Editorial -->
+<header class="bar bar-top">
+  <div class="brand">
+    <span class="brand-title">BIO<span class="glitch-slash" data-slash="//">//</span>GLITCH</span>
+    <span class="brand-sub">SISTEMA AUDIOVISUAL REACTIVO</span>
+  </div>
+  <div class="sys-badge" id="sysBadge">
+    <span class="badge-dot"></span>
+    <span class="badge-text" id="statusText">AUDIO STANDBY</span>
+  </div>
+  <span class="grow chain" id="chain">banco sonoro activo → análisis espectral (rms + frecuencias) → <b>modulación glitch</b> → flor intervenida</span>
+  <button type="button" class="btn-neon" id="soundBtn" aria-pressed="false">▶ REPRODUCIR SONIDO</button>
+  <button type="button" id="fsBtn" title="Pantalla completa">⛶ Pantalla completa</button>
+</header>
+
+<!-- Escenario Central Dominante -->
+<main class="stage" id="stage">
+  <div class="screen">
+    <video id="flowerVideo" muted loop playsinline preload="auto" style="display:none"></video>
+    <canvas id="view"></canvas>
+
+    <!-- Overlay Editorial Superior -->
+    <div class="title">
+      <h1>bio<span class="glitch-slash">//</span>glitch</h1>
+      <p id="status">Sonido: 425601__soundholder... · Flor: 14244-255658092_medium.mp4</p>
+    </div>
+
+    <!-- Lectura de Telemetría en Vivo (Limpia, sin notas musicales) -->
+    <div class="readout" aria-live="polite">
+      <div class="readout-row">
+        <div class="activity-bars">
+          <div class="meter-block">
+            <span class="lbl">AUDIO RMS</span>
+            <div class="meter-track"><div class="meter-fill" id="audioMeter"></div></div>
+            <span class="val" id="audioVal">0%</span>
+          </div>
+          <div class="meter-block">
+            <span class="lbl">AGUDOS / COLOR</span>
+            <div class="meter-track"><div class="meter-fill" id="specMeter"></div></div>
+            <span class="val" id="specVal">0%</span>
+          </div>
+          <div class="meter-block">
+            <span class="lbl">GLITCH TOTAL</span>
+            <div class="meter-track"><div class="meter-fill magenta" id="glitchMeter"></div></div>
+            <span class="val" id="glitchVal">0%</span>
+          </div>
+        </div>
+      </div>
+      <div class="telemetry">
+        <span class="lbl">frecuencia dominante </span><span class="val" id="lastHz">—</span>
+        <span class="lbl"> · balance </span><span class="val" id="specBalance">grave</span>
+        <span class="lbl"> · estado </span><span class="val" id="audioState">pausado</span>
+      </div>
+      <div class="rule" id="mapText">volumen (rms) → fragmentación · frecuencias → separación rgb y scanlines</div>
+    </div>
+
+    <!-- Pantalla de bienvenida / activación de audio -->
+    <div class="start-overlay" id="startOverlay">
+      <div class="start-box">
+        <div class="start-tag">SISTEMA AUDIOVISUAL EXPERIMENTAL</div>
+        <div class="start-title">BIO<span class="glitch-slash">//</span>GLITCH</div>
+        <p class="start-desc">Elige uno de tus cinco sonidos. El sistema analiza en tiempo real su energía (RMS), equilibrio frecuencial y transitorios para modular visualmente la flor mediante glitch digital. Al pausar el audio, la flor recupera su estado natural.</p>
+        <button type="button" class="btn-neon-big" id="startBtn">▶ INICIAR EXPERIENCIA SONORA</button>
+        <div class="start-hint">El sonido es el protagonista de la interacción. La imagen responde a cada variación acústica.</div>
+      </div>
+    </div>
+
+    <!-- Mensajes Toast -->
+    <div class="toast" id="toast" hidden></div>
+  </div>
+
+  <!-- Dock de Parámetros Útiles (Solo los 3 Paneles Reales) -->
+  <nav class="dock" id="dock" aria-label="Parámetros del sistema">
+    <!-- 01 · Parámetros Glitch (Los 5 Controles Interactivos) -->
+    <div>
+      <button type="button" class="trigger" aria-expanded="true" data-panel="pGlitch">
+        <span><span class="num">01</span>Parámetros Glitch</span>
+        <span class="state" id="stGlitch">reactivo</span>
+      </button>
+      <div class="panel" id="pGlitch">
+        <div class="panel-bar"><span>01 · Controles Principales</span><button type="button" data-close>Cerrar</button></div>
+        <p class="hint">Calibra cómo las propiedades acústicas del sonido traducen su energía en distorsión visual sobre la flor.</p>
+        
+        <div class="row">
+          <label for="glitchInt">Glitch Intensity</label>
+          <input type="range" id="glitchInt" min="0" max="100" step="1" value="65">
+          <output id="glitchIntOut">65 %</output>
+        </div>
+        <div class="row">
+          <label for="audioSens">Audio Sensitivity</label>
+          <input type="range" id="audioSens" min="1" max="100" step="1" value="70">
+          <output id="audioSensOut">70 %</output>
+        </div>
+        <div class="row">
+          <label for="pxSize">Pixel Size</label>
+          <input type="range" id="pxSize" min="4" max="64" step="2" value="16">
+          <output id="pxSizeOut">16 px</output>
+        </div>
+        <div class="row">
+          <label for="freqReact">Frequency Reactivity</label>
+          <input type="range" id="freqReact" min="0" max="100" step="1" value="75">
+          <output id="freqReactOut">75 %</output>
+        </div>
+        <div class="row">
+          <label for="decayTime">Decay</label>
+          <input type="range" id="decayTime" min="200" max="4000" step="50" value="1200">
+          <output id="decayTimeOut">1.2 s</output>
+        </div>
+        <div class="btnrow" style="margin-top:6px">
+          <button type="button" id="resetParamsBtn" class="btn-sm">↺ Restablecer parámetros</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 02 · Banco de Sonido Propio (Protagonista) -->
+    <div>
+      <button type="button" class="trigger" aria-expanded="false" data-panel="pBank">
+        <span><span class="num">02</span>Banco de Sonidos</span>
+        <span class="state" id="stSound">01 · EMF Glitch</span>
+      </button>
+      <div class="panel" id="pBank" hidden>
+        <div class="panel-bar"><span>02 · Banco de 5 Sonidos</span><button type="button" data-close>Cerrar</button></div>
+        <p class="hint">Selecciona la pista sonora protagonista. Puedes reproducirla, pausarla y calibrar su volumen.</p>
+        <div class="media-list" id="soundList">
+          <button type="button" class="media-item active" data-snd-idx="0">
+            <span class="m-idx">SND 01</span>
+            <span class="m-name">425601__soundholder__emf-macbook...wav</span>
+            <span class="m-tag">EMF Glitches & High Tones</span>
+          </button>
+          <button type="button" class="media-item" data-snd-idx="1">
+            <span class="m-idx">SND 02</span>
+            <span class="m-name">609250__aemyn__journey-to-the-interweb.mp3</span>
+            <span class="m-tag">Journey to the Interweb</span>
+          </button>
+          <button type="button" class="media-item" data-snd-idx="2">
+            <span class="m-idx">SND 03</span>
+            <span class="m-name">862900__bassimat__shimmering-ambient...wav</span>
+            <span class="m-tag">Shimmering Ambient Drone</span>
+          </button>
+          <button type="button" class="media-item" data-snd-idx="3">
+            <span class="m-idx">SND 04</span>
+            <span class="m-name">865163__bassimat__granular-guitar...wav</span>
+            <span class="m-tag">Granular Guitar Texture</span>
+          </button>
+          <button type="button" class="media-item" data-snd-idx="4">
+            <span class="m-idx">SND 05</span>
+            <span class="m-name">874083__kkenny101__glitch-layer-01...flac</span>
+            <span class="m-tag">Glitch Layer Loop</span>
+          </button>
+        </div>
+        <div class="btnrow" style="margin-top:10px">
+          <button type="button" id="sndPlayPanel">▶ Reproducir</button>
+          <button type="button" id="sndPausePanel">❚❚ Pausar</button>
+          <button type="button" id="sndLoopPanel" aria-pressed="true">⟲ Loop activo</button>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <label for="bankVol">Volumen Audio</label>
+          <input type="range" id="bankVol" min="0" max="100" step="1" value="80">
+          <output id="bankVolOut">80 %</output>
+        </div>
+      </div>
+    </div>
+
+    <!-- 03 · Selector de Flores (Videos) -->
+    <div>
+      <button type="button" class="trigger" aria-expanded="false" data-panel="pVideos">
+        <span><span class="num">03</span>Flores // Videos</span>
+        <span class="state" id="stVideo">01 · 14244...</span>
+      </button>
+      <div class="panel" id="pVideos" hidden>
+        <div class="panel-bar"><span>03 · Videos de Flores</span><button type="button" data-close>Cerrar</button></div>
+        <p class="hint">Cualquiera de las cinco flores reacciona en tiempo real a las frecuencias y energía del sonido activo.</p>
+        <div class="media-list" id="videoList">
+          <button type="button" class="media-item active" data-vid-idx="0">
+            <span class="m-idx">VID 01</span>
+            <span class="m-name">14244-255658092_medium.mp4</span>
+            <span class="m-tag">Flor Blanca</span>
+          </button>
+          <button type="button" class="media-item" data-vid-idx="1">
+            <span class="m-idx">VID 02</span>
+            <span class="m-name">150539-798555683_medium.mp4</span>
+            <span class="m-tag">Flor Violeta</span>
+          </button>
+          <button type="button" class="media-item" data-vid-idx="2">
+            <span class="m-idx">VID 03</span>
+            <span class="m-name">170455-843367899_medium.mp4</span>
+            <span class="m-tag">Flor Amarilla</span>
+          </button>
+          <button type="button" class="media-item" data-vid-idx="3">
+            <span class="m-idx">VID 04</span>
+            <span class="m-name">25950-353764155_medium.mp4</span>
+            <span class="m-tag">Capullo Rosa</span>
+          </button>
+          <button type="button" class="media-item" data-vid-idx="4">
+            <span class="m-idx">VID 05</span>
+            <span class="m-name">89185-613200477_medium.mp4</span>
+            <span class="m-tag">Ramo Silvestre</span>
+          </button>
+        </div>
+        <div class="btnrow" style="margin-top:8px">
+          <button type="button" id="vPlayPanel">▶ Play Video</button>
+          <button type="button" id="vPausePanel">❚❚ Pausa Video</button>
+          <button type="button" id="vLoopPanel" aria-pressed="true">⟲ Loop activo</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Ventana de Señal y Osciloscopio en Vivo -->
+  <section class="signal" id="signal" aria-label="Monitor de señal">
+    <div class="signal-bar">
+      <span>04 · Señal & Espectro</span>
+      <button type="button" id="sigHide" style="border:0;padding:0 4px;color:var(--gray-2)">Ocultar</button>
+    </div>
+    <div class="signal-body">
+      <div class="cap"><span id="scopeCap">onda sonora en vivo</span><span id="specCap">espectro fft</span></div>
+      <canvas id="scope" style="height:76px"></canvas>
+      <div class="cap"><span id="envCapL">envolvente acústica</span><span id="envCapR">rms · glitch</span></div>
+      <canvas id="env" style="height:64px"></canvas>
+    </div>
+  </section>
+</main>
+
+<!-- Barra Inferior de Control Limpia -->
+<footer class="bar bar-bottom">
+  <!-- Selector Principal de Sonido (Protagonista) -->
+  <div class="group-inline" role="group" aria-label="Sonido">
+    <span class="bar-lbl highlight">SONIDO:</span>
+    <button type="button" class="btn-snd active" data-snd-quick="0">01</button>
+    <button type="button" class="btn-snd" data-snd-quick="1">02</button>
+    <button type="button" class="btn-snd" data-snd-quick="2">03</button>
+    <button type="button" class="btn-snd" data-snd-quick="3">04</button>
+    <button type="button" class="btn-snd" data-snd-quick="4">05</button>
+    <button type="button" id="sndPlay" class="btn-accent" title="Reproducir audio">▶ Play</button>
+    <button type="button" id="sndPause" title="Pausar audio">❚❚ Pausa</button>
+  </div>
+
+  <div class="sep"></div>
+
+  <!-- Selector de Flores (Videos) -->
+  <div class="group-inline" role="group" aria-label="Flores">
+    <span class="bar-lbl">FLOR:</span>
+    <button type="button" class="btn-vid active" data-vid-quick="0">01</button>
+    <button type="button" class="btn-vid" data-vid-quick="1">02</button>
+    <button type="button" class="btn-vid" data-vid-quick="2">03</button>
+    <button type="button" class="btn-vid" data-vid-quick="3">04</button>
+    <button type="button" class="btn-vid" data-vid-quick="4">05</button>
+    <button type="button" id="vPlay" title="Reproducir flor">▶</button>
+    <button type="button" id="vPause" title="Pausar flor">❚❚</button>
+    <button type="button" id="vLoop" aria-pressed="true" title="Loop flor">⟲</button>
+  </div>
+
+  <span class="grow"></span>
+
+  <!-- Capas Visuales Útiles (Sin grilla, sin notas, sin partículas) -->
+  <div class="group-inline" role="group" aria-label="Capas">
+    <button type="button" class="toggle" id="tGlitch" aria-pressed="true">Glitch FX</button>
+    <button type="button" class="toggle" id="tSignal" aria-pressed="true">Señal</button>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
