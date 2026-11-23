@@ -1,6 +1,8 @@
 # BIO//GLITCH
 Una plataforma audiovisual experimental que explora el conflicto entre la naturaleza y la tecnología. A través de videos de flores en movimiento, sonidos electrónicos e interferencias digitales, la plataforma transforma un fenómeno visual en una experiencia sonora y gráfica.
 
+**[Visitar BIO//GLITCH](https://marcezm.github.io/BIO-GLITCH/)**
+
 ---
 
 ## Concepto y relación imagen–sonido
